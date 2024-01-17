@@ -24,9 +24,7 @@ def get_meme(template_name: str, text_list: List[str]) -> Image:
         part = text
         while len(part) > 0:
             if len(part) >= wrap:
-                if part[wrap-1] == " ":
-                    part = part[:wrap]
-                elif part[wrap] == " ":
+                if part[wrap-1] == " " or part[wrap] == " ":
                     part = part[:wrap]
                 elif part[wrap-2] == " ":
                     part = part[:wrap-1]
@@ -34,8 +32,7 @@ def get_meme(template_name: str, text_list: List[str]) -> Image:
                     part = part[:wrap] + '-'
             draw.text((x, y), part, font=font, fill='#5178a3')
             y += 40
-            part = text[wrap:]
-            text = text[wrap:]
+            part = text = text[wrap:]
 
     return img
 
