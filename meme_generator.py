@@ -1,110 +1,37 @@
-from typing import List
-from PIL import Image, ImageDraw, ImageFont
+from MemePy import MemePy
+from typing import Dict, Any
+import json
+import io
 
-def get_meme(template_name: str, text_list: List[str]) -> Image:
-    if template_name not in templates:
-        print('Неизвестный шаблон')
+TEMPLATES = {}
 
-        return
-    image_path = f'templates/{template_name}.jpg'
 
-    img = Image.open(image_path)
+def get_templates() -> Dict[str, int]:
+    '''
+        Возвращает список возможных шаблонов для мемов
+    '''
+    result = {}
+    memes = MemePy.MemeLibJsonDecoder.generate_standard_meme_dict()
 
-    draw = ImageDraw.Draw(img)
+    for meme in memes.keys():
+        result[meme] = memes[meme].count_non_optional()
 
-    font_path = 'C:/Users/user/vscode/memegenerator/arial.ttf'
+    return result
 
-    for i, text in enumerate(text_list):
-        print(i, text)
-        x = templates[template_name]['positions'][i]['x']
-        y = templates[template_name]['positions'][i]['y']
-        wrap = templates[template_name]['positions'][i]['wrap']
-        font_size = templates[template_name]['positions'][i]['font_size']
-        font = ImageFont.truetype(font=font_path, size=font_size)
-        part = text
-        while len(part) > 0:
-            if len(part) >= wrap:
-                if part[wrap-1] == " " or part[wrap] == " ":
-                    part = part[:wrap]
-                elif part[wrap-2] == " ":
-                    part = part[:wrap-1]
-                else:
-                    part = part[:wrap] + '-'
-            draw.text((x, y), part, font=font, fill='#5178a3')
-            y += 40
-            part = text = text[wrap:]
 
-    return img
+def generate(template, *params) -> Any:
+    params = list(params)
 
-templates = {
-    'frog': {
-        'positions': [{
-            'x': 0,
-            'y': 0,
-            'wrap': 16,
-            'font_size': 36,
-        }],
-    },
-    'drake': {
-        'positions': [{
-            'x': 333,
-            'y': 35,
-            'wrap': 16,
-            'font_size': 36,
-        }, {
-            'x': 333,
-            'y': 339,
-            'wrap': 13,
-            'font_size': 36,
-            }],
-    },
-    'but': {
-        'positions':[ {
-            'x': 62,
-            'y': 54,
-            'wrap': 13,
-            'font_size': 24,
-        }, {
-            'x': 80,
-            'y': 217,
-            'wrap': 12,
-            'font_size': 24,
-            }]
-    },
-    'sad': {
-        'positions': [{
-            'x': 530,
-            'y': 115,
-            'wrap': 11,
-            'font_size': 36,
-        }],
-    },
-    'head': {
-        'positions': [{
-            'x': 483,
-            'y': 360,
-            'wrap': 14,
-            'font_size': 36,
-        }],
-    },
-    'perfect': {
-        'positions': [{
-            'x': 300,
-            'y': 170,
-            'wrap': 15,
-            'font_size': 36,
-        }],
-    },
-    'agree': {
-        'positions': [{
-            'x': 560,
-            'y': 170,
-            'wrap': 17,
-            'font_size': 42,
-        }],
-    },
-}
+    for i in range(len(params)):
+        while '_' in params[i]:
+            params[i] = params[i].replace('_', ' ')
 
-text=['я кстати работаю в фсб', 'не волнуйся я тоже']
+    meme_pill = MemePy.MemeGenerator.get_meme_image(template, params)
+    output = io.BytesIO()
+    meme_pill.save(output, format='png')
 
-get_meme(template_name='but', text_list=text).save('test.jpg')
+    return output.getvalue()
+
+
+TEMPLATES = get_templates()
+print(TEMPLATES)
